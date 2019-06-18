@@ -14,6 +14,9 @@ interface Shape extends SVGElement {
     const scene = document.getElementById("class-or-not");
 
     function create_grid(size: number) {
+        size = Math.floor(size);
+        size = size + (1 - size % 2);
+
         const grid_center = Math.round(size / 2) - 1;
         const grid_size = 1000;
         scene.setAttributeNS(null, "viewBox", `0 0 ${grid_size} ${grid_size}`);
@@ -102,7 +105,7 @@ interface Shape extends SVGElement {
         }
     }
 
-    create_grid(15);
+    create_grid(Math.random() * 10 + 10);
 
     const blank_btn = document.getElementById("all-blank");
     const black_btn = document.getElementById("all-black");

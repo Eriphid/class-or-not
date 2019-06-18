@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
 body{
     margin: 0;
 }
@@ -8,7 +10,7 @@ main{
 }
 
 .blank{
-    fill: transparent;
+    fill: rgb(245, 245, 255);
 }
 
 #class-or-not{
@@ -36,5 +38,25 @@ main{
 
 button{
     margin: 10px;
-    padding: 5px 10px;
+    padding: 10px 20px;
+
+    border: 3px solid rgb(175, 175, 255);
+    border-radius: 10px;
+
+    background-color: rgb(20, 20, 50);
+    
+    color: rgb(225, 225, 255);
+    font-weight: bold;
+    font-size: 1.2rem;
+    font-family: Roboto;
+
+    cursor: pointer;
+
+    transition: box-shadow 0.5s, background-color 0.2s;
+    outline: none;
+}
+
+button:hover, button:focus{
+    box-shadow: 0 0 10px rgb(200, 200, 255), 0 0 20px rgb(200, 200, 255);
+    background-color: rgb(50, 50, 100)
 }

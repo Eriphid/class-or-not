@@ -2,6 +2,8 @@
 (function () {
     const scene = document.getElementById("class-or-not");
     function create_grid(size) {
+        size = Math.floor(size);
+        size = size + (1 - size % 2);
         const grid_center = Math.round(size / 2) - 1;
         const grid_size = 1000;
         scene.setAttributeNS(null, "viewBox", `0 0 ${grid_size} ${grid_size}`);
@@ -17,12 +19,9 @@
             for (let x = 0; x < size; ++x) {
                 let shape;
                 let is_blank_desc = {
-                    // get: () => shape.classList.contains("blank"),
-                    get: () => $(shape).hasClass("blank"),
-                    // set: (value) => shape.classList[value ? "add" : "remove"]("blank")                    
-                    set: (value) => $(shape)[value ? "addClass" : "removeClass"]("blank")
-                }
-
+                    get: () => shape.classList.contains("blank"),
+                    set: (value) => shape.classList[value ? "add" : "remove"]("blank")
+                };
                 if (x !== y) {
                     // Circle
                     shape = scene.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "circle"));
@@ -46,8 +45,7 @@
                         coord.y = y * item.size + padding;
                         shape.setAttribute("transform", `rotate(45 ${coord.x + coord.size / 2} ${coord.y + coord.size / 2})`);
                         is_blank_desc.set = (value) => {
-                            // shape.classList[value ? "add" : "remove"]("blank");
-                            $(shape)[value ? "addClass" : "removeClass"]("blank");
+                            shape.classList[value ? "add" : "remove"]("blank");
                             for (let x2 = 0; x2 < size; ++x2) {
                                 if (x2 === x)
                                     continue;
@@ -64,8 +62,7 @@
                         coord.x = x * item.size + item.padding;
                         coord.y = y * item.size + item.padding;
                         is_blank_desc.set = (value) => {
-                            // shape.classList[value ? "add" : "remove"]("blank");
-                            $(shape)[value ? "addClass" : "removeClass"]("blank");
+                            shape.classList[value ? "add" : "remove"]("blank");
                             for (let x2 = 0; x2 < size; ++x2) {
                                 if (x2 === x)
                                     continue;
@@ -91,7 +88,7 @@
             }
         }
     }
-    create_grid(15);
+    create_grid(Math.random() * 10 + 10);
     const blank_btn = document.getElementById("all-blank");
     const black_btn = document.getElementById("all-black");
     blank_btn.addEventListener("click", () => {
