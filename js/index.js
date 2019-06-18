@@ -21,8 +21,10 @@
                 let shape;
 
                 let is_blank_desc = {
-                    get: () => shape.classList.contains("blank"),
-                    set: (value) => shape.classList[value ? "add" : "remove"]("blank")
+                    // get: () => shape.classList.contains("blank"),
+                    get: () => $(shape).hasClass("blank"),
+                    // set: (value) => shape.classList[value ? "add" : "remove"]("blank")                    
+                    set: (value) => $(shape)[value ? "addClass" : "removeClass"]("blank")
                 }
 
                 if (x !== y) {
@@ -53,7 +55,8 @@
                         coord.x = Math.sqrt(coord.x ** 2 + coord.y ** 2) + coord.size / 2;
                         coord.y = -coord.size / 2;
                         is_blank_desc.set = (value) => {
-                            shape.classList[value ? "add" : "remove"]("blank");
+                            // shape.classList[value ? "add" : "remove"]("blank");
+                            $(shape)[value ? "addClass" : "removeClass"]("blank");
                             for (let x2 = 0; x2 < size; ++x2) {
                                 if (x2 === x) continue;
                                 grid[y][x2].is_blank = !grid[y][x2].is_blank;
@@ -68,7 +71,8 @@
                         coord.x = x * item.size + item.padding;
                         coord.y = y * item.size + item.padding;
                         is_blank_desc.set = (value) => {
-                            shape.classList[value ? "add" : "remove"]("blank");
+                            // shape.classList[value ? "add" : "remove"]("blank");
+                            $(shape)[value ? "addClass" : "removeClass"]("blank");
                             for (let x2 = 0; x2 < size; ++x2) {
                                 if (x2 === x) continue;
                                 grid[y][x2].is_blank = !grid[y][x2].is_blank;
