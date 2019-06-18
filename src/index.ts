@@ -5,13 +5,12 @@ interface NodeListOf<TNode> {
     [Symbol.iterator]: () => Iterator<TNode>
 }
 
-interface Shape extends SVGElement {
+interface Shape extends JQuery<any> {
     is_blank?: boolean
-    setAttribute(name: string, value: string | number): void
 }
 
 (function () {
-    const scene = document.getElementById("class-or-not");
+    const scene = $("#class-or-not");
 
     function create_grid(size: number) {
         size = Math.floor(size);
@@ -19,7 +18,7 @@ interface Shape extends SVGElement {
 
         const grid_center = Math.round(size / 2) - 1;
         const grid_size = 1000;
-        scene.setAttributeNS(null, "viewBox", `0 0 ${grid_size} ${grid_size}`);
+        scene.attr("viewBox", `0 0 ${grid_size} ${grid_size}`);
         const item = {
             size: grid_size / size,
             center: (grid_size / size) / 2,
@@ -34,20 +33,25 @@ interface Shape extends SVGElement {
                 let shape: Shape;
 
                 let is_blank_desc = {
-                    get: () => shape.classList.contains("blank"),
-                    set: (value: boolean) => shape.classList[value ? "add" : "remove"]("blank")
+                    get: () => shape.hasClass("blank"),
+                    set: (value: boolean) => { shape[value ? "addClass" : "removeClass"]("blank"); }
                 }
 
                 if (x !== y) {
                     // Circle
-                    shape = scene.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "circle"));
-                    shape.setAttribute("cx", Math.round(x * item.size + item.center));
-                    shape.setAttribute("cy", Math.round(y * item.size + item.center));
-                    shape.setAttribute("r", Math.round((item.size - item.padding * 2) / 2));
+                    shape = $(document.createElementNS("http://www.w3.org/2000/svg", "circle"));
+                    scene.append(shape);
+                    shape.attr({
+                        cx: Math.round(x * item.size + item.center),
+                        cy: Math.round(y * item.size + item.center),
+                        r: Math.round((item.size - item.padding * 2) / 2)
+                    })
+                    
                 }
                 else {
                     // Rectangle
-                    shape = scene.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "rect"));
+                    shape = $(document.createElementNS("http://www.w3.org/2000/svg", "rect"));
+                    scene.append(shape);
 
                     let coord = {
                         x: null as number,
@@ -61,9 +65,9 @@ interface Shape extends SVGElement {
                         const padding = (item.size - coord.size) / 2;
                         coord.x = x * item.size + padding;
                         coord.y = y * item.size + padding;
-                        shape.setAttribute("transform", `rotate(45 ${coord.x + coord.size / 2} ${coord.y + coord.size / 2})`);
+                        shape.attr("transform", `rotate(45 ${coord.x + coord.size / 2} ${coord.y + coord.size / 2})`);
                         is_blank_desc.set = (value) => {
-                            shape.classList[value ? "add" : "remove"]("blank");
+                            shape[value ? "addClass" : "removeClass"]("blank");
                             for (let x2 = 0; x2 < size; ++x2) {
                                 if (x2 === x) continue;
                                 grid[y][x2].is_blank = !grid[y][x2].is_blank;
@@ -78,7 +82,7 @@ interface Shape extends SVGElement {
                         coord.x = x * item.size + item.padding;
                         coord.y = y * item.size + item.padding;
                         is_blank_desc.set = (value) => {
-                            shape.classList[value ? "add" : "remove"]("blank");
+                            shape[value ? "addClass" : "removeClass"]("blank");
                             for (let x2 = 0; x2 < size; ++x2) {
                                 if (x2 === x) continue;
                                 grid[y][x2].is_blank = !grid[y][x2].is_blank;
@@ -89,16 +93,18 @@ interface Shape extends SVGElement {
                             }
                         }
                     }
-                    shape.setAttribute("x", coord.x);
-                    shape.setAttribute("y", coord.y);
-                    shape.setAttribute("width", coord.size);
-                    shape.setAttribute("height", coord.size);
+                    shape.attr({
+                        x: coord.x,
+                        y: coord.y,
+                        width: coord.size,
+                        height: coord.size
+                    })
                 }
 
-                shape.addEventListener("click", (ev) => {
+                shape.click((ev) => {
                     shape.is_blank = !shape.is_blank;
                 })
-
+                console.log(shape.is_blank);
                 Object.defineProperty(shape, "is_blank", is_blank_desc);
                 line.push(shape);
             }
@@ -107,17 +113,13 @@ interface Shape extends SVGElement {
 
     create_grid(Math.random() * 10 + 10);
 
-    const blank_btn = document.getElementById("all-blank");
-    const black_btn = document.getElementById("all-black");
+    const blank_btn = $("#all-blank");
+    const black_btn = $("#all-black");
 
-    blank_btn.addEventListener("click", () => {
-        for (let child of scene.children) {
-            child.classList.add("blank");
-        }
+    blank_btn.click(() => {
+        scene.children().addClass("blank");
     });
-    black_btn.addEventListener("click", () => {
-        for (let child of scene.querySelectorAll(".blank")) {
-            child.classList.remove("blank");
-        }
+    black_btn.click(() => {
+        $(".blank").removeClass("blank");
     });
 })()
