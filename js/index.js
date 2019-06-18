@@ -17,18 +17,12 @@
             for (let x = 0; x < size; ++x) {
                 let shape;
                 let is_blank_desc = {
-<<<<<<< HEAD
                     // get: () => shape.classList.contains("blank"),
                     get: () => $(shape).hasClass("blank"),
                     // set: (value) => shape.classList[value ? "add" : "remove"]("blank")                    
                     set: (value) => $(shape)[value ? "addClass" : "removeClass"]("blank")
                 }
 
-=======
-                    get: () => shape.classList.contains("blank"),
-                    set: (value) => shape.classList[value ? "add" : "remove"]("blank")
-                };
->>>>>>> master
                 if (x !== y) {
                     // Circle
                     shape = scene.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "circle"));
