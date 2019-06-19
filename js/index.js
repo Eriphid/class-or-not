@@ -14,10 +14,23 @@
         size = Math.floor(size);
         size = size + (1 - size % 2);
         let grid = {
+            count: size ** 2,
             size: size,
             center: Math.round(size / 2) - 1,
             viewbox_size: 80 * size,
-            items: []
+            items: [],
+            litted_count: 0,
+            set_litted: function (shape, value) {
+                if (!(shape instanceof SVGElement)) {
+                    shape = shape[0];
+                }
+                if (shape.classList.contains("litted") === value)
+                    return;
+                shape.classList[value ? "add" : "remove"]("litted");
+                value ? grid.litted_count++ : grid.litted_count--;
+                const unlitted_ratio = (grid.count - grid.litted_count) / grid.count;
+                document.body.style.backgroundColor = `rgb(${150 - unlitted_ratio * 100},${150 - unlitted_ratio * 100},${200 - unlitted_ratio * 100})`;
+            }
         };
         scene.attr("viewBox", `0 0 ${grid.viewbox_size} ${grid.viewbox_size}`);
         const item = {
@@ -32,7 +45,7 @@
                 let shape;
                 let litted_desc = {
                     get: () => shape.hasClass("litted"),
-                    set: (value) => { shape[value ? "addClass" : "removeClass"]("litted"); }
+                    set: (value) => { grid.set_litted(shape, value); }
                 };
                 if (x !== y) {
                     // Circle
@@ -44,7 +57,6 @@
                         r: Math.round((item.size - item.padding * 2) / 2)
                     };
                     shape.attr(coord);
-                    // shape.css("transform-origin", `${coord.cx}px ${coord.cy}px`);
                 }
                 else {
                     // Rectangle
@@ -62,7 +74,7 @@
                         coord.x = x * item.size + padding;
                         coord.y = y * item.size + padding;
                         litted_desc.set = (value) => {
-                            shape[value ? "addClass" : "removeClass"]("litted");
+                            grid.set_litted(shape, value);
                             let timeline = new TimelineLite();
                             const delay = 0.5 / size;
                             for (let x2 = 0; x2 < size; ++x2) {
@@ -89,7 +101,7 @@
                         coord.x = x * item.size + item.padding;
                         coord.y = y * item.size + item.padding;
                         litted_desc.set = (value) => {
-                            shape[value ? "addClass" : "removeClass"]("litted");
+                            grid.set_litted(shape, value);
                             let timeline = new TimelineLite();
                             const delay = 0.5 / size;
                             for (let x2 = 0; x2 < size; ++x2) {
@@ -120,6 +132,21 @@
                 shape.click((ev) => {
                     shape.litted = !shape.litted;
                 });
+                {
+                    let interval = null;
+                    shape.dblclick(ev => {
+                        if (interval) {
+                            clearInterval(interval);
+                            interval = null;
+                        }
+                        else {
+                            interval = setInterval(() => {
+                                shape.litted = !shape.litted;
+                            }, 300);
+                        }
+                    });
+                }
+                shape.mousedown(ev => ev.preventDefault());
                 Object.defineProperty(shape, "litted", litted_desc);
                 line.push(shape);
             }
@@ -127,6 +154,7 @@
         return grid;
     }
     function initialization() {
+        document.body.style.backgroundColor = "rgb(50,50,100)";
         let grid = create_grid(Math.random() * 15 + 5);
         const blank_btn = $("#all-blank");
         const black_btn = $("#all-black");
@@ -141,7 +169,7 @@
                 shuffle(children);
                 children.each((i, value) => {
                     timeline.call(() => {
-                        value.classList.add("litted");
+                        grid.set_litted(value, true);
                     }, null, null, i * delay);
                 });
             });
@@ -154,7 +182,7 @@
                 shuffle(children);
                 children.each((i, value) => {
                     timeline.call(() => {
-                        value.classList.remove("litted");
+                        grid.set_litted(value, false);
                     }, null, null, i * delay);
                 });
             });
@@ -164,15 +192,7 @@
         let circles = scene.children("circle");
         shuffle(circles);
         const delay = 1000 / circles.length;
-        // circles.each((i, value) => {
-        //     timeline.from(value, 0.25, {
-        //         scale: 0,
-        //         transformOrigin: "50% 50%",
-        //         ease: Expo.easeOut
-        //     }, i * delay);
-        // })
         let i = 0;
-        // circles.each((i, circle) => { circle.style.visibility = "hidden";} );
         circles.css("visibility", "hidden");
         $("rect").css("visibility", "hidden");
         let timestamp = Date.now();

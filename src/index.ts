@@ -30,17 +30,32 @@ declare var Expo: typeof gsap.Expo;
         return list;
     }
 
-
     function create_grid(size: number) {
         size = Math.floor(size);
         size = size + (1 - size % 2);
 
         let grid = {
+            count: size ** 2,
             size: size,
             center: Math.round(size / 2) - 1,
             viewbox_size: 80 * size,
-            items: [] as Shape[][]
+            items: [] as Shape[][],
+            litted_count: 0,
+            set_litted: function (shape: Shape | SVGElement, value: boolean) {
+                if (!(shape instanceof SVGElement)) {
+                    shape = shape[0];
+                }
+                if ((shape as SVGElement).classList.contains("litted") === value) return;
+                (shape as SVGElement).classList[value ? "add" : "remove"]("litted");
+                value ? grid.litted_count++ : grid.litted_count--;
+
+                const unlitted_ratio = (grid.count - grid.litted_count) / grid.count;
+                document.body.style.backgroundColor = `rgb(${150 - unlitted_ratio * 100},${150 - unlitted_ratio * 100},${200 - unlitted_ratio * 100})`
+            }
         }
+
+
+
         scene.attr("viewBox", `0 0 ${grid.viewbox_size} ${grid.viewbox_size}`);
         const item = {
             size: grid.viewbox_size / size,
@@ -56,7 +71,7 @@ declare var Expo: typeof gsap.Expo;
 
                 let litted_desc = {
                     get: () => shape.hasClass("litted"),
-                    set: (value: boolean) => { shape[value ? "addClass" : "removeClass"]("litted"); }
+                    set: (value: boolean) => { grid.set_litted(shape, value); }
                 }
 
                 if (x !== y) {
@@ -69,7 +84,6 @@ declare var Expo: typeof gsap.Expo;
                         r: Math.round((item.size - item.padding * 2) / 2)
                     }
                     shape.attr(coord)
-                    // shape.css("transform-origin", `${coord.cx}px ${coord.cy}px`);
                 }
                 else {
                     // Rectangle
@@ -89,7 +103,7 @@ declare var Expo: typeof gsap.Expo;
                         coord.x = x * item.size + padding;
                         coord.y = y * item.size + padding;
                         litted_desc.set = (value) => {
-                            shape[value ? "addClass" : "removeClass"]("litted");
+                            grid.set_litted(shape, value);
                             let timeline = new TimelineLite();
                             const delay = 0.5 / size;
                             for (let x2 = 0; x2 < size; ++x2) {
@@ -114,7 +128,7 @@ declare var Expo: typeof gsap.Expo;
                         coord.x = x * item.size + item.padding;
                         coord.y = y * item.size + item.padding;
                         litted_desc.set = (value) => {
-                            shape[value ? "addClass" : "removeClass"]("litted");
+                            grid.set_litted(shape, value);
                             let timeline = new TimelineLite();
                             const delay = 0.5 / size;
                             for (let x2 = 0; x2 < size; ++x2) {
@@ -143,7 +157,22 @@ declare var Expo: typeof gsap.Expo;
 
                 shape.click((ev) => {
                     shape.litted = !shape.litted;
-                })
+                });
+                {
+                    let interval = null as number;
+                    shape.dblclick(ev => {
+                        if (interval) {
+                            clearInterval(interval);
+                            interval = null;
+                        }
+                        else {
+                            interval = setInterval(() => {
+                                shape.litted = !shape.litted;
+                            }, 300);
+                        }
+                    })
+                }
+                shape.mousedown(ev => ev.preventDefault());
                 Object.defineProperty(shape, "litted", litted_desc);
                 line.push(shape);
             }
@@ -152,9 +181,9 @@ declare var Expo: typeof gsap.Expo;
         return grid;
     }
 
-
-
     function initialization() {
+        document.body.style.backgroundColor = "rgb(50,50,100)";
+
         let grid = create_grid(Math.random() * 15 + 5);
 
         const blank_btn = $("#all-blank");
@@ -163,7 +192,7 @@ declare var Expo: typeof gsap.Expo;
             let timeline: TimelineLite;
 
             blank_btn.click(() => {
-                if(timeline) timeline.kill();
+                if (timeline) timeline.kill();
                 timeline = new TimelineLite();
 
                 let children = scene.children(":not(.litted)");
@@ -171,12 +200,12 @@ declare var Expo: typeof gsap.Expo;
                 shuffle(children);
                 children.each((i, value) => {
                     timeline.call(() => {
-                        value.classList.add("litted");
+                        grid.set_litted(value as any, true);
                     }, null, null, i * delay)
                 })
             });
             black_btn.click(() => {
-                if(timeline) timeline.kill();
+                if (timeline) timeline.kill();
                 timeline = new TimelineLite();
 
                 let children = scene.children(".litted");
@@ -184,7 +213,7 @@ declare var Expo: typeof gsap.Expo;
                 shuffle(children);
                 children.each((i, value) => {
                     timeline.call(() => {
-                        value.classList.remove("litted");
+                        grid.set_litted(value as any, false);
                     }, null, null, i * delay)
                 })
             });
@@ -195,15 +224,7 @@ declare var Expo: typeof gsap.Expo;
         let circles = scene.children("circle");
         shuffle(circles);
         const delay = 1000 / circles.length;
-        // circles.each((i, value) => {
-        //     timeline.from(value, 0.25, {
-        //         scale: 0,
-        //         transformOrigin: "50% 50%",
-        //         ease: Expo.easeOut
-        //     }, i * delay);
-        // })
         let i = 0;
-        // circles.each((i, circle) => { circle.style.visibility = "hidden";} );
         circles.css("visibility", "hidden");
         $("rect").css("visibility", "hidden");
         let timestamp = Date.now();
@@ -262,6 +283,5 @@ declare var Expo: typeof gsap.Expo;
         };
         requestAnimationFrame(circles_handler);
     }
-
     initialization();
 })()
